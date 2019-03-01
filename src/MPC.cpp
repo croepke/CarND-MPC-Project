@@ -5,15 +5,17 @@
 #include <string>
 #include <vector>
 #include "Eigen-3.3/Eigen/Core"
+#include <limits>
 
 using CppAD::AD;
 using Eigen::VectorXd;
+using std::numeric_limits;
 
 /**
  * TODO: Set the timestep length and duration
  */
-size_t N = 0;
-double dt = 0;
+size_t N = 6;
+double dt = 0.1;
 
 // This value assumes the model presented in the classroom is used.
 //
@@ -26,6 +28,14 @@ double dt = 0;
 //
 // This is the length from front to CoG that has a similar radius.
 const double Lf = 2.67;
+int x_start = 0;
+int y_start = x_start + N;
+int psi_start = y_start + N;
+int v_start = psi_start + N;
+int cte_start = v_start + N;
+int epsi_start = cte_start + N;
+int delta_start = epsi_start + N;
+int a_start = delta_start + (N-1);
 
 class FG_eval {
  public:
@@ -37,7 +47,7 @@ class FG_eval {
   void operator()(ADvector& fg, const ADvector& vars) {
     /**
      * TODO: implement MPC
-     * `fg` is a vector of the cost constraints, `vars` is a vector of variable 
+     * `fg` is a vector of the cost constraints, `vars` is a vector of variable
      *   values (state & actuators)
      * NOTE: You'll probably go back and forth between this function and
      *   the Solver function below.
@@ -55,17 +65,24 @@ std::vector<double> MPC::Solve(const VectorXd &state, const VectorXd &coeffs) {
   bool ok = true;
   typedef CPPAD_TESTVECTOR(double) Dvector;
 
+  double x = state[0];
+  double y = state[1];
+  double psi = state[2];
+  double v = state[3];
+  double cte = state[4];
+  double epsi = state[5];
+
   /**
    * TODO: Set the number of model variables (includes both states and inputs).
    * For example: If the state is a 4 element vector, the actuators is a 2
    *   element vector and there are 10 timesteps. The number of variables is:
    *   4 * 10 + 2 * 9
    */
-  size_t n_vars = 0;
+  size_t n_vars = 6 * N + 2 * (N-1);
   /**
    * TODO: Set the number of constraints
    */
-  size_t n_constraints = 0;
+  size_t n_constraints = 6 * N;
 
   // Initial value of the independent variables.
   // SHOULD BE 0 besides initial state.
@@ -74,11 +91,32 @@ std::vector<double> MPC::Solve(const VectorXd &state, const VectorXd &coeffs) {
     vars[i] = 0;
   }
 
+  vars[x_start] = x;
+  vars[y_start] = y;
+  vars[psi_start] = psi;
+  vars[v_start] = v;
+  vars[cte_start] = cte;
+  vars[epsi_start] = epsi;
+
   Dvector vars_lowerbound(n_vars);
   Dvector vars_upperbound(n_vars);
   /**
    * TODO: Set lower and upper limits for variables.
    */
+  for (int i = 0; i < delta_start; ++i) {
+    vars_lowerbound[i] = -numeric_limits<double>::infinity();
+    vars_upperbound[i] = numeric_limits<double>::infinity();
+  }
+
+  for (int i = delta_start; i < a_start; ++i) {
+    vars_lowerbound[i] = -0.436332;
+    vars_upperbound[i] = 0.436332;
+  }
+
+  for (int i = a_start; i < n_vars; ++i) {
+    vars_lowerbound[i] = -1;
+    vars_upperbound[i] = 1;
+  }
 
   // Lower and upper limits for the constraints
   // Should be 0 besides initial state.
@@ -88,6 +126,20 @@ std::vector<double> MPC::Solve(const VectorXd &state, const VectorXd &coeffs) {
     constraints_lowerbound[i] = 0;
     constraints_upperbound[i] = 0;
   }
+
+  constraints_lowerbound[x_start] = x;
+  constraints_lowerbound[y_start] = y;
+  constraints_lowerbound[psi_start] = psi;
+  constraints_lowerbound[v_start] = v;
+  constraints_lowerbound[cte_start] = cte;
+  constraints_lowerbound[epsi_start] = epsi;
+
+  constraints_upperbound[x_start] = x;
+  constraints_upperbound[y_start] = y;
+  constraints_upperbound[psi_start] = psi;
+  constraints_upperbound[v_start] = v;
+  constraints_upperbound[cte_start] = cte;
+  constraints_upperbound[epsi_start] = epsi;
 
   // object that computes objective and constraints
   FG_eval fg_eval(coeffs);
