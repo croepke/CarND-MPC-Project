@@ -53,12 +53,12 @@ int main() {
 
           // Calculate cte and epsi which are both parts of the full state
           // polyeval(coeffs, x) returns the y-position of the reference trajectory
-          double cte = polyeval(coeffs, x) - y;
-          double epsi = atan(coeffs[1]+2*coeffs[2]*x+3*coeffs[3]*pow(x,2)) - psi;
+          double cte = polyeval(coeffs, px) - py;
+          double epsi = atan(coeffs[1]+2*coeffs[2]*px+3*coeffs[3]*pow(px,2)) - psi;
 
           // Define the state
           VectorXd state(6);
-          state << x, y, psi, v, cte, epsi;
+          state << px, py, psi, v, cte, epsi;
 
           /**
            * TODO: Calculate steering angle and throttle using MPC.
@@ -93,6 +93,10 @@ int main() {
           msgJson["mpc_x"] = mpc_x_vals;
           msgJson["mpc_y"] = mpc_y_vals;
 
+          vector<double> car_coords = map2car(px, py, psi, vars[0], vars[1]);
+          mpc_x_vals.push_back(car_coords[0]);
+          mpc_y_vals.push_back(car_coords[1]);
+
           // Display the waypoints/reference line
           vector<double> next_x_vals;
           vector<double> next_y_vals;
@@ -102,6 +106,12 @@ int main() {
            *   the vehicle's coordinate system the points in the simulator are
            *   connected by a Yellow line
            */
+
+          for (i=0; i<ptsx.size(); ++i) {
+            vector<double> car_coords_ref = map2car(px, py, psi, ptsx[i], ptsy[i]);
+            next_x_vals.push_back(car_coords_ref[0]);
+            next_y_vals.push_back(car_coords_ref[1]);
+          }
 
           msgJson["next_x"] = next_x_vals;
           msgJson["next_y"] = next_y_vals;
