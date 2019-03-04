@@ -48,17 +48,32 @@ int main() {
           double psi = j[1]["psi"];
           double v = j[1]["speed"];
 
+          for (int i = 0; i < ptsx.size(); ++i) {
+
+            // shift car reference angle to 90 degrees
+            double shift_x = ptsx[i]-px;
+            double shift_y = ptsy[i]-py;
+
+            ptsx[i] = (shift_x * cos(0-psi)-shift_y*sin(0-psi));
+            ptsy[i] = (shift_x * sin(0-psi)+shift_y*cos(0-psi));
+          }
+
+          double* ptrx = &ptsx[0];
+          Eigen::Map<Eigen::VectorXd> ptsx_transform(ptrx, 6);
+
+          double* ptry = &ptsy[0];
+          Eigen::Map<Eigen::VectorXd> ptsy_transform(ptry, 6);
+
           // Fit third-order polynomial and retrieve coefficients
-          auto coeffs = polyfit(ptsx, ptsy, 3);
+          auto coeffs = polyfit(ptsx_transform, ptsy_transform, 3);
 
           // Calculate cte and epsi which are both parts of the full state
-          // polyeval(coeffs, x) returns the y-position of the reference trajectory
-          double cte = polyeval(coeffs, px) - py;
-          double epsi = atan(coeffs[1]+2*coeffs[2]*px+3*coeffs[3]*pow(px,2)) - psi;
+          double cte = polyeval(coeffs, 0);
+          double epsi = -atan(coeffs[1]);
 
           // Define the state
           VectorXd state(6);
-          state << px, py, psi, v, cte, epsi;
+          state << 0, 0, 0, v, cte, epsi;
 
           /**
            * TODO: Calculate steering angle and throttle using MPC.
@@ -77,8 +92,8 @@ int main() {
           // NOTE: Remember to divide by deg2rad(25) before you send the
           //   steering value back. Otherwise the values will be in between
           //   [-deg2rad(25), deg2rad(25] instead of [-1, 1].
-          msgJson["steering_angle"] = steer_value;
-          msgJson["throttle"] = throttle_value;
+          msgJson["steering_angle"] = vars[0]/(deg2rad(25)*Lf);
+          msgJson["throttle"] = vars[1];
 
           // Display the MPC predicted trajectory
           vector<double> mpc_x_vals;
@@ -90,12 +105,19 @@ int main() {
            *   connected by a Green line
            */
 
+          for (int i = 2; i < vars.size(); ++i) {
+            if(i%2 == 0) {
+              mpc_x_vals.push_back(vars[i]);
+            }
+            else {
+              mpc_y_vals.push_back(vars[i]);
+            }
+          }
+
+          double Lf = 2.67;
+
           msgJson["mpc_x"] = mpc_x_vals;
           msgJson["mpc_y"] = mpc_y_vals;
-
-          vector<double> car_coords = map2car(px, py, psi, vars[0], vars[1]);
-          mpc_x_vals.push_back(car_coords[0]);
-          mpc_y_vals.push_back(car_coords[1]);
 
           // Display the waypoints/reference line
           vector<double> next_x_vals;
@@ -107,10 +129,11 @@ int main() {
            *   connected by a Yellow line
            */
 
-          for (i=0; i<ptsx.size(); ++i) {
-            vector<double> car_coords_ref = map2car(px, py, psi, ptsx[i], ptsy[i]);
-            next_x_vals.push_back(car_coords_ref[0]);
-            next_y_vals.push_back(car_coords_ref[1]);
+          double poly_inc = 2.5;
+          int num_points = 25;
+          for (i = 1; i < num_points; ++i) {
+            next_x_vals.push_back(poly_inc*i);
+            next_y_vals.push_back(polyeval(coeffs, poly_inc*i));
           }
 
           msgJson["next_x"] = next_x_vals;
