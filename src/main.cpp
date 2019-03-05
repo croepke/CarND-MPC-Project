@@ -20,6 +20,7 @@ using std::vector;
 constexpr double pi() { return M_PI; }
 double deg2rad(double x) { return x * pi() / 180; }
 double rad2deg(double x) { return x * 180 / pi(); }
+const double Lf = 2.67;
 
 int main() {
   uWS::Hub h;
@@ -83,10 +84,8 @@ int main() {
           // Get the state variables (x,y,psi,v,cte,epsi) and actuators (delta,a)
           auto vars = mpc.Solve(state, coeffs);
 
-          double steer_value;
-          double throttle_value;
-
-
+          double steer_value = j[1]["steering_angle"];
+          double throttle_value = j[1]["throttle"];
 
           json msgJson;
           // NOTE: Remember to divide by deg2rad(25) before you send the
@@ -114,8 +113,6 @@ int main() {
             }
           }
 
-          double Lf = 2.67;
-
           msgJson["mpc_x"] = mpc_x_vals;
           msgJson["mpc_y"] = mpc_y_vals;
 
@@ -131,7 +128,7 @@ int main() {
 
           double poly_inc = 2.5;
           int num_points = 25;
-          for (i = 1; i < num_points; ++i) {
+          for (int i = 1; i < num_points; ++i) {
             next_x_vals.push_back(poly_inc*i);
             next_y_vals.push_back(polyeval(coeffs, poly_inc*i));
           }

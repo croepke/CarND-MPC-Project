@@ -60,10 +60,4 @@ VectorXd polyfit(const VectorXd &xvals, const VectorXd &yvals, int order) {
   return result;
 }
 
-VectorXd map2car(float car_x, float car_y, float car_psi, float map_x, float map_y) {
-  double car_x = car_x + cos(car_psi) * map_x - sin(car_psi) * map_y;
-  double car_y = car_y + sin(car_psi) * map_x + cos(car_psi) * map_y;
-  VectorXd map_coordinates << car_x, car_y;
-}
-
 #endif  // HELPERS_H
