@@ -72,6 +72,9 @@ int main() {
           double cte = polyeval(coeffs, 0);
           double epsi = -atan(coeffs[1]);
 
+          double steer_value = j[1]["steering_angle"];
+          double throttle_value = j[1]["throttle"];
+
           // Define the state
           VectorXd state(6);
           state << 0, 0, 0, v, cte, epsi;
@@ -83,9 +86,6 @@ int main() {
 
           // Get the state variables (x,y,psi,v,cte,epsi) and actuators (delta,a)
           auto vars = mpc.Solve(state, coeffs);
-
-          double steer_value = j[1]["steering_angle"];
-          double throttle_value = j[1]["throttle"];
 
           json msgJson;
           // NOTE: Remember to divide by deg2rad(25) before you send the
