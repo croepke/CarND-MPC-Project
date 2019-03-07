@@ -60,24 +60,41 @@ class FG_eval {
 
     fg[0] = 0;
 
-    for (int i=0; i < N; ++i) {
-      fg[0] += 3000*CppAD::pow(vars[cte_start + i] - ref_cte, 2);
-      fg[0] += 4000*CppAD::pow(vars[epsi_start + i] - ref_epsi, 2);
-      fg[0] += CppAD::pow(vars[v_start + i] - ref_v, 2);
-    }
+    // // The part of the cost based on the reference state.
+    // for (int t = 0; t < N; t++) {
+    //   fg[0] += CppAD::pow(vars[cte_start + t], 2);
+    //   fg[0] += CppAD::pow(vars[epsi_start + t], 2);
+    //   fg[0] += CppAD::pow(vars[v_start + t] - ref_v, 2);
+    // }
+    //
+    // // Minimize the use of actuators.
+    // for (int t = 0; t < N - 1; t++) {
+    //   fg[0] += CppAD::pow(vars[delta_start + t], 2);
+    //   fg[0] += CppAD::pow(vars[a_start + t], 2);
+    // }
+    //
+    // // Minimize the value gap between sequential actuations.
+    // for (int t = 0; t < N - 2; t++) {
+    //   fg[0] += 100 * CppAD::pow(vars[delta_start + t + 1] - vars[delta_start + t], 2);
+    //   fg[0] += CppAD::pow(vars[a_start + t + 1] - vars[a_start + t], 2);
+    // }
+    for (int i = 0; i < N; i++) {
+         fg[0] += 200*CppAD::pow(vars[cte_start + i], 2);
+         fg[0] += 50*CppAD::pow(vars[epsi_start + i], 2);
+         fg[0] += CppAD::pow(vars[v_start + i] - ref_v, 2);
+       }
 
-     // Minimize change-rate.
-    for (int t = 0; t < N - 1; ++t) {
-      fg[0] += 5*CppAD::pow(vars[delta_start + t], 2);
-      fg[0] += 5*CppAD::pow(vars[a_start + t], 2);
-      fg[0] += 700*CppAD::pow(vars[delta_start + t] * vars[v_start+t], 2);
-    }
+     for (int i = 0; i < N - 1; i++) {
+       fg[0] += CppAD::pow(vars[delta_start + i], 2);
+       fg[0] += CppAD::pow(vars[a_start + i], 2);
+       // try adding penalty for speed + steer
+       fg[0] += CppAD::pow(vars[delta_start + i] * vars[v_start+i], 2);
+     }
 
-    // Minimize the value gap between sequential actuations.
-    for (int t = 0; t < N - 2; ++t) {
-      fg[0] += 200 * CppAD::pow(vars[delta_start + t + 1] - vars[delta_start + t], 2);
-      fg[0] += 10 * CppAD::pow(vars[a_start + t + 1] - vars[a_start + t], 2);
-    }
+     for (int i = 0; i < N - 2; i++) {
+       //fg[0] += CppAD::pow(vars[delta_start + i + 1] - vars[delta_start + i], 2);
+       fg[0] += CppAD::pow(vars[a_start + i + 1] - vars[a_start + i], 2);
+     }
 
     fg[1 + x_start] = vars[x_start];
     fg[1 + y_start] = vars[y_start];

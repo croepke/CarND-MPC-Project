@@ -77,7 +77,15 @@ int main() {
 
           // Define the state
           VectorXd state(6);
-          state << 0, 0, 0, v, cte, epsi;
+          double dt = 0.1;
+          px = 0 + v * cos(-steer_value) * dt;
+          py = 0 + v * sin(-steer_value) * dt;
+          psi = 0 - v * steer_value / Lf * dt;
+          cte += v * sin(epsi) * dt;
+          epsi -= v * steer_value / Lf * dt;
+          v += throttle_value * dt;
+          state << px, py, psi, v, cte, epsi;
+          //state << 0, 0, 0, v, cte, epsi;
 
           /**
            * TODO: Calculate steering angle and throttle using MPC.
