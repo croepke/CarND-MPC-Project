@@ -14,8 +14,8 @@ using std::numeric_limits;
 /**
  * TODO: Set the timestep length and duration
  */
-size_t N = 15;
-double dt = 0.05;
+size_t N = 10;
+double dt = 0.1;
 
 // This value assumes the model presented in the classroom is used.
 //
@@ -31,7 +31,7 @@ const double Lf = 2.67;
 
 double ref_cte = 0;
 double ref_epsi = 0;
-double ref_v = 50;
+double ref_v = 60;
 
 int x_start = 0;
 int y_start = x_start + N;
@@ -72,7 +72,7 @@ class FG_eval {
      }
 
     for (int i = 0; i < N - 2; i++) {
-      fg[0] += 200*CppAD::pow(vars[delta_start + i + 1] - vars[delta_start + i], 2);
+      fg[0] += 500*CppAD::pow(vars[delta_start + i + 1] - vars[delta_start + i], 2);
       fg[0] += 20*CppAD::pow(vars[a_start + i + 1] - vars[a_start + i], 2);
     }
 
@@ -116,7 +116,7 @@ class FG_eval {
       fg[1 + psi_start + t] = psi1 - (psi0 - v0/Lf * delta0 * dt);
       fg[1 + v_start + t] = v1 - (v0 + a0 * dt);
       fg[1 + cte_start + t] = cte1 - ((f0 - y0) + v0 * CppAD::sin(epsi0)*dt);
-      fg[1 + epsi_start + t] = epsi1 - ((psi0 - psi_dest) + v0/Lf * delta0 * dt);
+      fg[1 + epsi_start + t] = epsi1 - ((psi0 - psi_dest) - v0/Lf * delta0 * dt);
     }
 
   }

@@ -24,7 +24,7 @@ Additionally, the aim is to punish the change rate of of the actuations (block 2
 
 ### Timestep Length and Elapsed Duration
 
-I experimented with various N and dt values and found that a dt of 0.05 (instead of 0.1) gave me generally better results because the projection seemed to be smoother. I experimented with N values between 5 and 20 and found that N=15 resulted in a good trade-off between computational effort needed to solve the optimization problem and keeping the car on the track. A N too small yielded projections too much focused on the current position not taking into account waypoints further away (especially in curvy parts of the road), whereas a N too large didn't yield any additional benefits for making decisions for the actuations of the next time steps.
+I experimented with various N and dt values and found that a dt of 0.1 (instead of 0.05) gave me generally better results because the projection seemed to be more stable. With a step size of 0.05 seconds I found the polynomial changes more "restless". I experimented with N values between 5 and 20 and found that N=10 resulted in a good trade-off between computational effort needed to solve the optimization problem and keeping the car on the track. A N too small yielded projections too much focused on the current position not taking into account waypoints further away (especially in curvy parts of the road), whereas a N too large didn't yield any additional benefits for making decisions for the actuations or even worsened them in more curvy parts of the road.
 
 
 ### Polynomial fitting and MPC preprocessing
