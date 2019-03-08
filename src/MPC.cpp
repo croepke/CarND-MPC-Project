@@ -14,8 +14,8 @@ using std::numeric_limits;
 /**
  * TODO: Set the timestep length and duration
  */
-size_t N = 10;
-double dt = 0.1;
+size_t N = 12;
+double dt = 0.05;
 
 // This value assumes the model presented in the classroom is used.
 //
@@ -60,41 +60,21 @@ class FG_eval {
 
     fg[0] = 0;
 
-    // // The part of the cost based on the reference state.
-    // for (int t = 0; t < N; t++) {
-    //   fg[0] += CppAD::pow(vars[cte_start + t], 2);
-    //   fg[0] += CppAD::pow(vars[epsi_start + t], 2);
-    //   fg[0] += CppAD::pow(vars[v_start + t] - ref_v, 2);
-    // }
-    //
-    // // Minimize the use of actuators.
-    // for (int t = 0; t < N - 1; t++) {
-    //   fg[0] += CppAD::pow(vars[delta_start + t], 2);
-    //   fg[0] += CppAD::pow(vars[a_start + t], 2);
-    // }
-    //
-    // // Minimize the value gap between sequential actuations.
-    // for (int t = 0; t < N - 2; t++) {
-    //   fg[0] += 100 * CppAD::pow(vars[delta_start + t + 1] - vars[delta_start + t], 2);
-    //   fg[0] += CppAD::pow(vars[a_start + t + 1] - vars[a_start + t], 2);
-    // }
     for (int i = 0; i < N; i++) {
-         fg[0] += 200*CppAD::pow(vars[cte_start + i], 2);
-         fg[0] += 50*CppAD::pow(vars[epsi_start + i], 2);
-         fg[0] += CppAD::pow(vars[v_start + i] - ref_v, 2);
-       }
+       fg[0] += 2000*CppAD::pow(vars[cte_start + i], 2);
+       fg[0] += 2000*CppAD::pow(vars[epsi_start + i], 2);
+       fg[0] += CppAD::pow(vars[v_start + i] - ref_v, 2);
+     }
 
      for (int i = 0; i < N - 1; i++) {
-       fg[0] += CppAD::pow(vars[delta_start + i], 2);
-       fg[0] += CppAD::pow(vars[a_start + i], 2);
-       // try adding penalty for speed + steer
-       fg[0] += CppAD::pow(vars[delta_start + i] * vars[v_start+i], 2);
+       fg[0] += 25*CppAD::pow(vars[delta_start + i], 2);
+       fg[0] += 25*CppAD::pow(vars[a_start + i], 2);
      }
 
-     for (int i = 0; i < N - 2; i++) {
-       //fg[0] += CppAD::pow(vars[delta_start + i + 1] - vars[delta_start + i], 2);
-       fg[0] += CppAD::pow(vars[a_start + i + 1] - vars[a_start + i], 2);
-     }
+    for (int i = 0; i < N - 2; i++) {
+      fg[0] += 200*CppAD::pow(vars[delta_start + i + 1] - vars[delta_start + i], 2);
+      fg[0] += 20*CppAD::pow(vars[a_start + i + 1] - vars[a_start + i], 2);
+    }
 
     fg[1 + x_start] = vars[x_start];
     fg[1 + y_start] = vars[y_start];
@@ -122,6 +102,8 @@ class FG_eval {
       AD<double> v0 = vars[v_start + t - 1];
       AD<double> cte0 = vars[cte_start + t - 1];
       AD<double> epsi0 = vars[epsi_start + t - 1];
+
+      // actuations
       AD<double> delta0 = vars[delta_start + t - 1];
       AD<double> a0 = vars[a_start + t - 1];
 
