@@ -14,7 +14,7 @@ using std::numeric_limits;
 /**
  * TODO: Set the timestep length and duration
  */
-size_t N = 12;
+size_t N = 15;
 double dt = 0.05;
 
 // This value assumes the model presented in the classroom is used.
